@@ -41,14 +41,14 @@
 │    DIARIZATION + ASR        │
 ├─────────────────────────────┤
 │ • pyannote-audio (Precision-2) │
-│ • Whisper local / Deepgram     │
+│ • Deepgram primary / Whisper opt │
 │ • Optional confidence filtering │
 └────────────┬────────────────┘
              │
 ┌────────────▼────────────────┐
 │   SPEAKER MEMORY & LABELING │
 ├─────────────────────────────┤
-│ • ECAPA embeddings           │
+│ • [ARCHIVED - See v4.1]      │
 │ • Voiceprint storage         │
 │ • Temporal boosting, drift   │
 └────────────┬────────────────┘
@@ -81,14 +81,14 @@ Build a robust, speaker-aware, podcast ETL pipeline that processes episodes of "
 │    DIARIZATION + ASR        │
 ├─────────────────────────────┤
 │ • pyannote-audio (Precision-2) │
-│ • Whisper local / Deepgram alt │
+│ • Deepgram primary / Whisper opt │
 │ • Optional confidence filtering │
 └────────────┬────────────────┘
              │
 ┌────────────▼────────────────┐
 │   SPEAKER MEMORY & LABELING │
 ├─────────────────────────────┤
-│ • ECAPA-based embeddings     │
+│ • [ARCHIVED - See v4.1]      │
 │ • Voiceprint store (pgvector) │
 │ • Cross-episode memory       │
 │   - Guest clustering         │
@@ -115,18 +115,18 @@ Build a robust, speaker-aware, podcast ETL pipeline that processes episodes of "
 
 ### Diarization & Transcription
 - Diarization: pyannote Precision-2
-- ASR: Whisper (local) or Deepgram fallback
+- ASR: Deepgram primary (Whisper optional fallback)
 - Align transcript with speaker turns
 - Output timestamped transcript with speaker IDs
 
 ### Confidence Filtering (Optional)
 - Filter chunks below thresholds
   - ASR confidence < 0.85
-  - ECAPA similarity < 0.75
+  - [ARCHIVED - See v4.1]
 - Generates report and mask file
 
 ### Speaker Memory
-- ECAPA embeddings per segment (**required** for persistent, named speaker identification, e.g., "Alex Hormozi")
+- [ARCHIVED - See v4.1 for pyannote Speaker Platform approach]
 - Speaker profile:
 ```json
 {
@@ -158,7 +158,7 @@ adjusted_score = base_score * (1 / (1 + log1p(days_since_last)))
 
 ## 🧪 Testing Plan
 
-- Unit tests: diarization, ASR, ECAPA matcher
+- Unit tests: diarization, ASR, speaker matcher
 - Integration: episode full flow
 - Performance: 1h audio < 90 mins
 - QA: Ground truth episodes, manual overrides
@@ -179,8 +179,8 @@ adjusted_score = base_score * (1 / (1 + log1p(days_since_last)))
 ### Phase 1: Foundation
 - Setup development environment and repo structure
 - Define schemas: `transcript.json`, `voiceprint.json`, episode metadata
-- Integrate ECAPA and test single speaker labeling
-- ✅ Success: ECAPA pipeline + voiceprint output + orchestrator scaffold
+- [ARCHIVED - See v4.1]
+- ✅ Success: [ARCHIVED - See v4.1]
 
 ### Phase 2: Core Pipeline
 - Diarization + ASR processing with alignment
@@ -188,7 +188,7 @@ adjusted_score = base_score * (1 / (1 + log1p(days_since_last)))
 - ✅ Success: Full transcript JSON with speaker timestamps (1 episode)
 
 ### Phase 3: Speaker Intelligence
-- Implement speaker memory, ECAPA matching across episodes
+- [ARCHIVED - See v4.1 for pyannote Speaker Platform]
 - Add temporal boosting and drift tracking logic
 - ✅ Success: Persistent identity for speakers like "Alex Hormozi"
 
@@ -197,9 +197,9 @@ adjusted_score = base_score * (1 / (1 + log1p(days_since_last)))
 - Add report generation + confidence filtering logic
 - ✅ Success: CLI-based job runner with test mode + Markdown summary
 
-### Phase 5: Deployment — Fly.io
+### Phase 5: Deployment — [ARCHIVED - Now using Inngest]
 - Containerize ETL pipeline (Docker)
-- Deploy on Fly.io with RSS polling + job queue
+- [ARCHIVED - Now using Inngest orchestration]
 - Support `RSS_MODE=test` and `RSS_MODE=production`
 - ✅ Success: JSON artifacts uploaded to GitHub or S3/CDN per episode
 
@@ -214,7 +214,7 @@ adjusted_score = base_score * (1 / (1 + log1p(days_since_last)))
 
 - DER: < 15%
 - WER: < 10%
-- ECAPA match accuracy: 90%
+- Speaker match accuracy: 90%
 - Speaker label correctness: high priority
 - Time: < 1.5x realtime
 
@@ -386,7 +386,7 @@ python ingest_rss.py --feed-url https://example.com/podcast.xml
 
 - `enhanced_orchestrator.py`: Controls ETL flow
 - `confidence_filter.py`: Optional mask generator
-- `speaker_service.py`: ECAPA, pgvector logic
+- `speaker_id_service.py`: pyannote Speaker Platform logic
 - `rss_processor.py`: Handles fetching and parsing RSS feeds, extracting episode metadata, audio URLs, and filtering rerun episodes based on configurable keywords.
 - `guid_normalizer.py`: Handles inconsistent UUID formats from RSS feeds and database storage. Ensures all GUIDs are consistently formatted as 36-character UUIDs.
 
@@ -397,7 +397,7 @@ python ingest_rss.py --feed-url https://example.com/podcast.xml
 | Risk | Impact | Strategy |
 |------|--------|----------|
 | Pyannote license change | High | Snapshot working version |
-| ECAPA fails on similar voices | Med | Add human override |
+| Speaker ID fails on similar voices | Med | Add human override |
 | GPU cost spike | Med | Fallback to Deepgram |
 | Speaker drift over time | Med | Track delta, retrain quarterly |
 | GDPR data retention | High | Cleanup policy for voiceprints |
@@ -419,12 +419,12 @@ python ingest_rss.py --feed-url https://example.com/podcast.xml
 ## 🚀 Implementation Roadmap
 
 ### Phase 1: Foundation
-- Setup env, define schemas, test ECAPA
+- Setup env, define schemas, test speaker ID
 - Success: 1 voiceprint → pgvector, basic orchestrator works
 
 ### Phase 2: Core Pipeline
 - Transcript + Speaker Labeling Output
-- Success: Transcribed JSON with ECAPA match
+- Success: Transcribed JSON with speaker match
 
 ### Phase 3: Speaker Intelligence
 - Temporal boost, drift, guest tracking
@@ -438,20 +438,20 @@ python ingest_rss.py --feed-url https://example.com/podcast.xml
 
 ## 🚀 Deployment Strategy
 
-### ⚙️ Pipeline Deployment (Fly.io)
+### ⚙️ Pipeline Deployment [ARCHIVED - Now using Inngest]
 
-The ETL pipeline, including audio processing, diarization, speaker memory, and RSS ingestion, will be deployed on **Fly.io**. Reasons:
+The ETL pipeline, including audio processing, diarization, speaker memory, and RSS ingestion, will be deployed on **[ARCHIVED - Now using Inngest]**. Reasons:
 
 - Low-latency performance with global regions
 - Scalable background job runners for episodic processing
 - Supports Python-based containers
 - Easy to run distributed queues and background workers
 
-#### Responsibilities on Fly.io:
+#### Responsibilities [ARCHIVED - Now handled by Inngest]:
 - RSS fetch + episode queueing
 - Diarization with pyannote
-- Transcription with Whisper or Deepgram
-- ECAPA-based speaker memory
+- Transcription with Deepgram (Whisper optional)
+- [ARCHIVED - Now using pyannote Speaker Platform]
 - JSON output generation (`transcript.json` per episode)
 - Markdown or report generation for validation
 - Episode-level error logging and retry management
@@ -465,7 +465,7 @@ These artifacts can be inspected before batch processing all episodes.
 
 ---
 
-### 🔄 Incremental Testing Pipeline (Fly.io)
+### 🔄 Incremental Testing Pipeline [ARCHIVED - Now using Inngest]
 
 A staging mechanism will be built into the RSS logic to allow per-episode validation:
 
@@ -502,7 +502,7 @@ The frontend layer — the HTML webpage per episode — will be hosted on **Verc
 
 ### 🔁 Deployment Flow Summary
 
-1. 🛰️ Fly.io pulls RSS, processes episodes, emits JSON output
+1. 🛰️ [ARCHIVED - Now Inngest orchestrates RSS polling and processing]
 2. 📂 JSONs stored in durable storage or pushed to repo
 3. 🎨 Vercel pulls processed JSON and builds episode pages
 4. ✅ Team verifies new pages before full launch
@@ -514,7 +514,7 @@ The frontend layer — the HTML webpage per episode — will be hosted on **Verc
                  |
                  v
         +--------▼---------+              +--------------------------+
-        |     Fly.io       |              |     Developer Tools      |
+        | [ARCHIVED-Inngest]|              |     Developer Tools      |
         |  (Pipeline App)  |<-------------+  GitHub / CLI / Admin UI |
         +--------+---------+              +--------------------------+
                  |
@@ -547,10 +547,10 @@ The frontend layer — the HTML webpage per episode — will be hosted on **Verc
 
 To support the split deployment model, the following additions are recommended in the SPRD:
 
-### 🧱 Backend (Fly.io) Requirements
+### 🧱 Backend [ARCHIVED - Now using Inngest] Requirements
 
 1. **Pipeline Runner App**
-   - Dockerized app for RSS ingest, transcription, diarization, ECAPA matching
+   - Dockerized app for RSS ingest, transcription, diarization, speaker matching
    - Support for:
      - RSS_MODE=test
      - RSS_MODE=production
@@ -599,7 +599,7 @@ To support the split deployment model, the following additions are recommended i
 
 ### 🧪 Developer Workflow
 
-- Fly.io deployment for ETL
+- [ARCHIVED - Now using Inngest] for ETL orchestration
 - GitHub for code and JSON artifact storage
 - Vercel builds from main branch JSON
 - Manual validation before full ingestion
