@@ -1,3 +1,12 @@
+# [ARCHIVED] Read The Game — Product Requirements Document (PRD)
+
+> **⚠️ ARCHIVED:** This document describes an older architecture using self-hosted ECAPA embeddings and Fly.io deployment.
+>
+> **Current Architecture:** Please refer to [read_the_game_PRD_v4_1.md](./read_the_game_PRD_v4_1.md) which uses:
+> - Inngest for orchestration (instead of Fly.io)
+> - pyannote Speaker Platform for speaker identification (instead of self-hosted ECAPA)
+> - Deepgram as primary ASR with optional Whisper fallback
+
 # Read The Game — Product Requirements Document (PRD)
 **Version:** 3.0  
 **Date:** 2025-09-13  

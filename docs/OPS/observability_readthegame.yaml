@@ -1,3 +1,43 @@
-# Monitoring & Observability Configuration
+# observability_readthegame.yaml
 
-(Generated content will go here)
+version: 1
+
+metrics:
+  - name: episode.new
+    type: counter
+    description: Episodes ingested via RSS or manual trigger
+
+  - name: episode.processed
+    type: counter
+    description: Episodes fully processed (diarization + ASR + speaker memory)
+
+  - name: speaker.identified
+    type: counter
+    description: Successful speaker identifications from Speaker Platform
+
+  - name: speaker.unknown
+    type: counter
+    description: Speaker Platform returned unknown speaker
+
+  - name: retries
+    type: counter
+    description: Number of retried steps (Deepgram, pyannote, Inngest)
+
+  - name: pipeline.duration
+    type: histogram
+    description: Total processing time per episode
+
+logs:
+  level: info
+  format: json
+  fields:
+    - timestamp
+    - level
+    - episode_id
+    - step
+    - message
+
+traces:
+  enabled: true
+  provider: inngest
+  sampling_rate: 0.2

@@ -149,7 +149,7 @@ Build a robust, speaker-aware, podcast ETL pipeline that processes episodes of "
   "decision": "match"
 }
 ```
-**Note:** A DIY path using ECAPA/x-vectors on a self-hosted service remains a v2 option if cost, privacy, or customization demands it.
+**Note:** A DIY path using x-vectors on a self-hosted service remains a v2 option if cost, privacy, or customization demands it.
 
 ### Indexing & Storage
 - Supabase pgvector (initial)
@@ -168,7 +168,7 @@ Build a robust, speaker-aware, podcast ETL pipeline that processes episodes of "
 
 ## 🧪 Testing Plan
 
-- Unit tests: diarization, ASR, ECAPA matcher
+- Unit tests: diarization, ASR, speaker matcher
 - Integration: episode full flow
 - Performance: 1h audio < 90 mins
 - QA: Ground truth episodes, manual overrides
@@ -222,7 +222,7 @@ Build a robust, speaker-aware, podcast ETL pipeline that processes episodes of "
 
 - DER: < 15%
 - WER: < 10%
-- ECAPA match accuracy: 90%
+- Speaker match accuracy: 90%
 - Speaker label correctness: high priority
 - Time: < 1.5x realtime
 

@@ -1,1 +1,0 @@
-# ECAPA speaker memory logic

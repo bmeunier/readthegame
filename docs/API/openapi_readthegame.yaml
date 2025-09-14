@@ -1,3 +1,72 @@
-# OpenAPI 3.0 specification
+openapi: 3.0.0
+info:
+  title: Read The Game API
+  version: 1.0.0
+  description: API for accessing processed podcast episodes and managing pipeline triggers.
 
-(Generated content will go here)
+paths:
+  /episodes/{id}:
+    get:
+      summary: Get episode transcript
+      description: Returns full transcript JSON with global speaker IDs, timestamps, and text.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Episode ID (GUID or internal ID)
+      responses:
+        "200":
+          description: Transcript found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeTranscript"
+        "404":
+          description: Episode not found
+
+  /episodes/{id}/reprocess:
+    post:
+      summary: Trigger reprocessing of an episode
+      description: Sends an `episode.reprocess` event to Inngest for the given episode.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Episode ID to reprocess
+      responses:
+        "202":
+          description: Reprocessing event accepted
+        "400":
+          description: Invalid request
+
+components:
+  schemas:
+    EpisodeTranscript:
+      type: object
+      properties:
+        episode_id:
+          type: string
+        title:
+          type: string
+        segments:
+          type: array
+          items:
+            type: object
+            properties:
+              start:
+                type: number
+                format: float
+              end:
+                type: number
+                format: float
+              speaker_id_global:
+                type: string
+              text:
+                type: string
+        metadata:
+          type: object
+          additionalProperties: true

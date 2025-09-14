@@ -1,86 +1,78 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This document provides Claude with the necessary context, goals, and constraints to assist with the **Read The Game** project.
 
-## Project Overview
+---
 
-Read The Game is a podcast transcription pipeline that creates speaker-aware transcripts with audio sync. The project processes audio from "The Game" podcast by Alex Hormozi, using advanced diarization and speaker recognition to create searchable, structured documents.
+## 🎯 Project Goal
 
-## Commands
+Turn Alex Hormozi's *The Game* podcast episodes into speaker-aware, structured, and searchable documents with transcripts, audio, and metadata. Enable reliable retrieval, analysis, and embedding into downstream systems.
 
-### Development Setup
-```bash
-# Install dependencies
-make setup-dev
-# Or directly:
-pip install -r requirements.txt
-```
+---
 
-### Testing
-```bash
-# Run all tests
-make test
-# Or directly:
-pytest tests/
+## 🧠 Architecture Overview
 
-# Run specific test file
-pytest tests/test_transcription.py
+**Stack:**  
+- **Inngest** — Orchestration of workflow steps (durable, retries, cron, fan-out/fan-in)  
+- **Deepgram** — Primary ASR (speech-to-text)  
+- **pyannote Precision-2** — Speaker diarization (who spoke when)  
+- **pyannote Speaker Platform** — Speaker memory (cross-episode speaker identification with voiceprints)  
+- **Supabase** — Postgres + pgvector for storage and JSON artifacts  
+- **Vercel** — Frontend rendering of episode pages
 
-# Run with verbose output
-pytest -v tests/
-```
+**Flow:**  
+`episode.new` (event) → Inngest orchestrates steps → Diarization (Precision-2) → ASR (Deepgram) → Speaker Memory (pyannote Speaker Platform) → Supabase (storage + pgvector) → Vercel (frontend).
 
-### Running the Pipeline
-```bash
-# Main pipeline entry point
-python src/main.py
-```
+---
 
-### Code Quality
-```bash
-# Format code with black
-black src/ tests/
+## 🛠️ Claude's Role
 
-# Lint with ruff
-ruff check src/ tests/
-```
+Claude is used to:
+- Review PRDs and keep them aligned with the latest architecture decisions.  
+- Suggest code refactors and consistency improvements.  
+- Generate or update supporting documentation.  
+- Maintain repo hygiene (naming conventions, dependency lists, tests).
 
-## Architecture
+---
 
-The project follows a multi-stage ETL pipeline architecture:
+## 🔄 Refactor Tasks Checklist
 
-1. **Audio Ingestion**: Handles audio file input (MP3/WAV) with future RSS feed support
-2. **Diarization & ASR**: Uses pyannote-audio Precision-2 for speaker diarization and Whisper/Deepgram for transcription
-3. **Speaker Memory**: Implements ECAPA-based embeddings for persistent speaker identification across episodes
-4. **Indexing & Storage**: Uses Supabase pgvector initially, with plans to migrate to Qdrant
+When asked to realign the repo, Claude should:
 
-### Key Components
+1. **Docs**
+   - Ensure README.md matches current stack.
+   - Keep PRDs synced with implementation decisions.
+   - Remove any mention of ECAPA or Fly.io.
 
-- **Pipeline Stage Pattern**: Each processing stage (`src/pipeline/`) is isolated with checkpointing for fault tolerance
-- **Speaker Identification**: Cross-episode speaker memory using ECAPA embeddings with temporal boosting and drift tracking
-- **Confidence Filtering**: Optional filtering based on ASR confidence (< 0.85) and ECAPA similarity (< 0.75)
+2. **Dependencies**
+   - Core deps: fastapi, uvicorn, deepgram-sdk, supabase, sqlalchemy, feedparser, pydantic, pytest, ruff, black.
+   - Optional ML deps (torch, torchaudio, pyannote.audio, speechbrain, whisper) moved to `requirements-ml-optional.txt` if local experimentation is desired.
 
-### Directory Structure
+3. **Speaker Memory**
+   - Use `speaker_id_service.py` to connect to pyannote Speaker Platform APIs.
+   - Functions: `identify(wav_uri)`, `enroll(name, wav_uri)`, with `speaker_id_global` returned.
+   - Maintain alias table for human overrides.
 
-- `src/pipeline/`: Core processing stages (transcription, diarization, speaker memory, output)
-- `src/models/`: Data models (transcript, episode, speaker, config schema)
-- `src/utils/`: Helper utilities (audio tools, file operations, logging, timing)
-- `tests/`: Test suite with fixtures for each pipeline component
-- `vercel_frontend/`: Static frontend for displaying transcripts (HTML/CSS)
-- `docs/`: Project documentation (PRD, technical specs, setup guides)
+4. **Testing**
+   - Tests assume Deepgram as primary ASR.
+   - Add mocked tests for Speaker Platform (identify & enroll).
 
-## Key Technologies
+5. **Setup & Ops**
+   - `.env.example` must include: DEEPGRAM_API_KEY, PYANNOTE_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY.
+   - Secrets doc updated accordingly.
+   - Error playbook covers Deepgram, Precision-2, Speaker Platform, and Inngest retries.
+   - Observability tracks events (`episode.new`, `episode.processed`, `speaker.identified`).
 
-- **Diarization**: pyannote-audio 3.3.2 with Precision-2 model
-- **Speech Recognition**: Whisper (local) with Deepgram SDK fallback
-- **Speaker Embeddings**: ECAPA-TDNN via SpeechBrain
-- **Vector Storage**: Supabase pgvector (future: Qdrant/Weaviate)
-- **ML Framework**: PyTorch with Lightning for training pipelines
-- **Testing**: pytest with asyncio support
+6. **API**
+   - Expose `GET /episodes/{id}` → transcript JSON with speaker IDs.
+   - Optionally `POST /episodes/{id}/reprocess` → triggers Inngest event.
 
-## Important Considerations
+---
 
-- The pipeline uses checkpointing at each stage stored in `job_state.json`
-- Speaker profiles are persisted with embeddings for cross-episode identification
-- Temporal boosting formula: `adjusted_score = base_score * (1 / (1 + log1p(days_since_last)))`
-- The project is designed for "The Game" podcast but architecture supports any podcast feed
+## 📌 Notes
+
+- Whisper is optional, not primary.  
+- ECAPA and Fly.io are **not** part of the default stack.  
+- Self-hosted diarization/speaker memory may be reintroduced later as v2.  
+
+---

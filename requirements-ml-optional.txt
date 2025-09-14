@@ -1,0 +1,6 @@
+# Install these only if running local diarization/embeddings
+torch
+torchaudio
+pyannote.audio
+speechbrain
+whisper
