@@ -1,7 +1,7 @@
 # src/inngest/functions.py
 """
 Inngest Function Stubs wired to real service call sites.
-Replace TODOs with actual implementations (Deepgram, pyannote, Supabase).
+[PROJECT ON HOLD] TODOs will be addressed when development resumes.
 """
 from __future__ import annotations
 
@@ -25,6 +25,7 @@ except Exception:  # pragma: no cover
     Client = None  # type: ignore
 
 from src.pipeline.speaker_id_service import SpeakerMemory, SpeakerPlatformClient
+from src.export.markdown_exporter import MarkdownExporter
 
 # ----------------
 # Helpers / Config
@@ -63,7 +64,7 @@ def fetch_audio(event: Dict[str, Any]) -> Dict[str, Any]:
     """
     episode_id = event.get("episode_id")
     audio_url = event.get("audio_url")
-    # TODO: actually download to storage (Supabase Storage or S3) and return a URI
+    # [ON HOLD] TODO: actually download to storage (Supabase Storage or S3) and return a URI
     audio_uri = audio_url  # For now, pass-through
     return {"episode_id": episode_id, "audio_uri": audio_uri}
 
@@ -73,7 +74,7 @@ def diarize_episode(event: Dict[str, Any]) -> Dict[str, Any]:
     """
     episode_id = event["episode_id"]
     audio_uri = event["audio_uri"]
-    # TODO: Replace with real Precision-2 API call
+    # [ON HOLD] TODO: Replace with real Precision-2 API call
     # Example shape (dummy)
     segments: List[Dict[str, Any]] = [
         {"start": 0.0, "end": 5.0, "speaker": "A"},
@@ -105,12 +106,12 @@ def identify_speakers(event: Dict[str, Any]) -> Dict[str, Any]:
     episode_id = event["episode_id"]
     transcript = event["transcript"]
 
-    # For each local speaker, create a snippet URI (TODO) then call identify/enroll
+    # For each local speaker, create a snippet URI ([ON HOLD] TODO) then call identify/enroll
     client = SpeakerPlatformClient()
     memory = SpeakerMemory(client, aliases={})
     # Dummy mapping
     local_to_global = {"A": "alex_hormozi", "B": "guest1"}
-    # TODO: Implement per-speaker snippet extraction and call:
+    # [ON HOLD] TODO: Implement per-speaker snippet extraction and call:
     # res = memory.identify_or_enroll(local_label, wav_uri)
     return {"episode_id": episode_id, "speaker_map": local_to_global, "transcript": transcript}
 
@@ -124,11 +125,47 @@ def index_episode(event: Dict[str, Any]) -> Dict[str, Any]:
     # Persist JSON artifact and records
     sb = _supabase()
     # Example schema: episodes (id,title), segments (episode_id,start,end,speaker_id_global,text)
-    # TODO: Upsert into episodes
+    # [ON HOLD] TODO: Upsert into episodes
     # sb.table("episodes").upsert({"id": episode_id, "title": "Unknown"}).execute()
-    # TODO: Upsert segments
+    # [ON HOLD] TODO: Upsert segments
     # for seg in transcript:
     #     gid = speaker_map.get(seg["speaker"], seg["speaker"])
     #     sb.table("segments").insert({ ... }).execute()
 
     return {"episode_id": episode_id, "status": "indexed"}
+
+def export_markdown(event: Dict[str, Any]) -> Dict[str, Any]:
+    """Trigger: episode.indexed → export JSON and Markdown artifacts.
+    Saves both transcript.json and transcript.md to artifacts directory.
+    """
+    episode_id = event["episode_id"]
+    transcript = event.get("transcript", {})
+    speaker_map = event.get("speaker_map", {})
+
+    # Apply speaker mapping to transcript
+    for segment in transcript:
+        local_speaker = segment.get("speaker", "unknown")
+        segment["speaker_id_global"] = speaker_map.get(local_speaker, local_speaker)
+        segment["speaker_name"] = speaker_map.get(local_speaker, f"Speaker {local_speaker}")
+
+    # Prepare full transcript JSON
+    transcript_json = {
+        "episode_id": episode_id,
+        "title": event.get("title", f"Episode {episode_id}"),
+        "date": event.get("date", ""),
+        "audio_url": event.get("audio_url", ""),
+        "duration": event.get("duration", 0),
+        "summary": event.get("summary", ""),
+        "segments": transcript
+    }
+
+    # Export to Markdown and save artifacts
+    exporter = MarkdownExporter()
+    json_path, markdown_path = exporter.save_episode(episode_id, transcript_json)
+
+    return {
+        "episode_id": episode_id,
+        "status": "exported",
+        "json_path": str(json_path),
+        "markdown_path": str(markdown_path)
+    }

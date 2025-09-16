@@ -12,16 +12,15 @@ Turn Alex Hormozi's *The Game* podcast episodes into speaker-aware, structured, 
 
 ## 🧠 Architecture Overview
 
-**Stack:**  
-- **Inngest** — Orchestration of workflow steps (durable, retries, cron, fan-out/fan-in)  
-- **Deepgram** — Primary ASR (speech-to-text)  
-- **pyannote Precision-2** — Speaker diarization (who spoke when)  
-- **pyannote Speaker Platform** — Speaker memory (cross-episode speaker identification with voiceprints)  
-- **Supabase** — Postgres + pgvector for storage and JSON artifacts  
-- **Vercel** — Frontend rendering of episode pages
+**Stack:**
+- **Inngest** — Orchestration of workflow steps (durable, retries, cron, fan-out/fan-in)
+- **Deepgram** — Primary ASR (speech-to-text)
+- **pyannote Precision-2** — Speaker diarization (who spoke when)
+- **pyannote Speaker Platform** — Speaker memory (cross-episode speaker identification with voiceprints)
+- **Supabase** — Postgres + pgvector for storage and JSON artifacts
 
-**Flow:**  
-`episode.new` (event) → Inngest orchestrates steps → Diarization (Precision-2) → ASR (Deepgram) → Speaker Memory (pyannote Speaker Platform) → Supabase (storage + pgvector) → Vercel (frontend).
+**Flow:**
+`episode.new` (event) → Inngest orchestrates steps → Diarization (Precision-2) → ASR (Deepgram) → Speaker Memory (pyannote Speaker Platform) → Supabase (storage + pgvector) → JSON + Markdown artifacts.
 
 ---
 

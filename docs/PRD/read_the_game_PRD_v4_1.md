@@ -211,11 +211,11 @@ Build a robust, speaker-aware, podcast ETL pipeline that processes episodes of "
 - Persist artifacts to Supabase Storage or S3-compatible bucket
 - ✅ Success: End-to-end run triggered by event → JSON artifacts saved
 
-### Phase 6: Frontend Rendering — Vercel
-- Static episode page generator (Astro or Next.js)
-- Renders audio + transcript from `transcript.json`
-- Supports `/episodes/[episode_id]` route + GitHub preview builds
-- ✅ Success: Vercel shows beautiful "Read The Game" page per episode
+### Phase 6: Markdown Export
+- Convert JSON transcripts to structured Markdown files
+- Include YAML front matter with metadata
+- Export both .json and .md to `/artifacts/episodes/[episode_id]/`
+- ✅ Success: Clean, portable Markdown artifacts for any downstream use
 
 
 ## 📊 Success Metrics

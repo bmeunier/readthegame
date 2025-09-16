@@ -1,14 +1,15 @@
 # Read The Game
 
-Turn podcasts into readable, speaker-aware transcripts with audio sync.
+> **⚠️ PROJECT ON HOLD**: This project is currently paused as we pivot to building a bridging layer with existing platforms. The repository is not abandoned—development will resume once the integration work is stabilized. All existing code remains functional and intact.
+
+Backend pipeline for processing podcasts into speaker-aware JSON and Markdown transcripts.
 
 **Stack:**  
 - **Inngest** — Orchestration of pipeline steps (durable, retries, cron, fan-out/fan-in)  
 - **Deepgram** — Primary ASR (speech-to-text)  
 - **pyannote Precision-2** — World-class speaker diarization (who spoke when)  
 - **pyannote Speaker Platform** — Speaker memory (cross-episode speaker identification via voiceprints)  
-- **Supabase** — Storage (Postgres + pgvector) and JSON artifacts  
-- **Vercel** — Frontend deployment (episode pages)
+- **Supabase** — Storage (Postgres + pgvector) and JSON artifacts
 
 ---
 
@@ -30,7 +31,7 @@ uvicorn src.api:app --host 0.0.0.0 --port 8000
 # 3. Run tests
 pytest -q
 
-# 4. Run Inngest Dev Server (from your web app project)
+# 4. Run Inngest Dev Server
 npx inngest-cli@latest dev
 ```
 
@@ -58,9 +59,10 @@ npx inngest-cli@latest dev
    - JSON artifacts saved to Supabase  
    - Structured data stored in Postgres + pgvector  
 
-5. **Frontend**  
-   - Vercel renders `/episodes/[id]` pages from Supabase or JSON  
-   - Audio player + speaker-attributed transcript  
+5. **Export**
+   - JSON artifacts with full transcript data
+   - Markdown files with YAML front matter
+   - Saved to `/artifacts/episodes/[episode_id]/`  
 
 ---
 
@@ -111,15 +113,27 @@ Tests cover:
 
 ## 📦 Deployment
 
-- **Backend orchestration:** Inngest (functions + cron)  
-- **Data:** Supabase (tables + pgvector + storage)  
-- **Frontend:** Vercel (static/SSR pages)  
+- **Backend orchestration:** Inngest (functions + cron)
+- **Data:** Supabase (tables + pgvector + storage)
+- **Artifacts:** JSON + Markdown exports in `/artifacts/`  
 
 ---
 
 ## 📌 Notes
 
 - Whisper is optional and can be disabled if you only want to rely on Deepgram.
-- A DIY x-vector speaker memory service may be added later if privacy or customization demands it, but the default path is pyannote Speaker Platform.  
+- A DIY x-vector speaker memory service may be added later if privacy or customization demands it, but the default path is pyannote Speaker Platform.
+
+---
+
+## 🔄 Next Steps
+
+This repository is temporarily on hold while we focus on building bridging infrastructure to integrate with existing podcast platforms. Once the integration layer is stable and we have a clear path forward, active development on this pipeline will resume. The codebase remains fully functional and can be reactivated at any time.
+
+Key areas for future development when work resumes:
+- Enhanced speaker identification accuracy
+- Real-time processing capabilities
+- Expanded platform integrations
+- Advanced analytics and insights
 
 ---
